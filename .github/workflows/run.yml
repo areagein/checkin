@@ -3,8 +3,11 @@ name: run
 on:
   workflow_dispatch:
   push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
   schedule:
-    - cron: 10 16 * * *
+    - cron: 33 18 * * *
 
 jobs:
   run:
