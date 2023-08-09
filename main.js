@@ -5,7 +5,7 @@ const glados = async () => {
     const headers = {
       'cookie': cookie,
       'referer': 'https://glados.rocks/console/checkin',
-      'user-agent': 'Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 6.0)',
+      'user-agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/94.0.4606.71 Safari/537.36',
     }
     const checkin = await fetch('https://glados.rocks/api/user/checkin', {
       method: 'POST',
