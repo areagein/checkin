@@ -6,7 +6,7 @@ result = ''
 
 send_headers = {
 
-​    "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36",
+​    "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/94.0.4606.71 Safari/537.36",
 
 ​    'Content-Type': 'application/json'
 
@@ -24,9 +24,9 @@ cookies = [
 
 ​    {
 
-​        'koa:sess': 'xxxx',
+​        'koa:sess': 'eyJ1c2VySWQiOjI5NTkyNiwiX2V4cGlyZSI6MTcxNzYwODczOTQ5OSwiX21heEFnZSI6MjU5MjAwMDAwMDB9',
 
-​        'koa:sess.sig': 'xxxxx',
+​        'koa:sess.sig': 'ro5MMTSqmUFBIZZ1ivekBul_VQA',
 
 ​    }
 
