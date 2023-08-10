@@ -1,63 +1,82 @@
+# -*- coding: utf-8 -*-
 import json
 import os
+import hashlib
 
 import requests
 
 from dailycheckin import CheckIn
 
 
-class Glados(CheckIn):
-    name = "GLADOS"
+class EverPhoto(CheckIn):
+    name = "时光相册"
 
     def __init__(self, check_item):
         self.check_item = check_item
 
     @staticmethod
-    def sign(cookies):
-        checkin_url = "https://glados.rocks/api/user/checkin"
-        status_url = "https://glados.rocks/api/user/status"
-        payload = {
-            'token': 'glados.network'
+    def sign(mobile, password):
+        salt = "tc.everphoto."
+        pwd = salt + password
+        password = hashlib.md5(pwd.encode()).hexdigest()
+        data = {"mobile": mobile, "password": password}
+        headers = {
+            "user-agent": "EverPhoto/4.5.0 (Android;4050002;MuMu;23;dev)",
+            "application": "tc.everphoto",
         }
-        headers = {'cookie': cookies,
-                   'referer': "https://glados.rocks/console/checkin",
-                   'origin': "https://glados.rocks",
-                   'user-agent': "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.75 Safari/537.36",
-                   'content-type': 'application/json;charset=UTF-8'}
-        result = "签到失败"
-        email = "无法获取"
-        leftDays = "无法获取"
-        message = "无法获取"
         try:
-            checkin_res = requests.post(
-                checkin_url, headers=headers, data=json.dumps(payload)).json()
-            status = requests.get(status_url, headers=headers).json()
-            message = checkin_res['message']
-            if 'list' in checkin_res:
-                result = "签到成功"
-                email = status['data']['email']
-                leftDays = status['data']['leftDays'].split('.')[0]
-        except Exception as errorMsg:
-            result = "签到异常"
-            message = repr(errorMsg)
-        return [
-            {"name": "帐号信息", "value": email},
-            {"name": "签到结果", "value": result},
-            {"name": "剩余天数", "value": leftDays},
-            {"name": "签到信息", "value": message},
-        ]
+            response = requests.post(
+                url="https://web.everphoto.cn/api/auth", headers=headers, data=data).json()
+            if response.get("code") == 0:
+                data = response.get("data")
+                token = data.get("token")
+                mobile = data.get("user_profile", {}).get("mobile")
+                return token, {"name": "账号信息", "value": mobile}
+            else:
+                return False, {"name": "账号信息", "value": "登录失败"}
+        except Exception as e:
+            return False, {"name": "账号信息", "value": "登录失败"}
+
+    @staticmethod
+    def checkin(token):
+        headers = {
+            "user-agent": "EverPhoto/4.5.0 (Android;4050002;MuMu;23;dev)",
+            "application": "tc.everphoto",
+            "content-type": "application/json",
+            "host": "openapi.everphoto.cn",
+            "connection": "Keep-Alive",
+            "authorization": f"Bearer {token}",
+        }
+        try:
+            response = requests.post(
+                url="https://openapi.everphoto.cn/sf/3/v4/PostCheckIn", headers=headers).json()
+            if response.get("code") == 0:
+                data = response.get("data")
+                checkin_result = data.get("checkin_result")
+                if checkin_result:
+                    return {"name": "签到信息", "value": "签到成功"}
+                else:
+                    return {"name": "签到信息", "value": "已签到过或签到失败"}
+            else:
+                return {"name": "签到信息", "value": "签到失败"}
+        except Exception as e:
+            return {"name": "签到信息", "value": "签到失败"}
 
     def main(self):
-        cookie = self.check_item.get("cookie")
-        msg = self.sign(cookie)
+        mobile = self.check_item.get("mobile")
+        password = self.check_item.get("password")
+        token, sign_msg = self.sign(mobile=mobile, password=password)
+        msg = [sign_msg]
+        if token:
+            checkin_msg = self.checkin(token=token)
+            msg.append(checkin_msg)
         msg = "\n".join(
             [f"{one.get('name')}: {one.get('value')}" for one in msg])
-        print(msg)
         return msg
 
 
 if __name__ == "__main__":
     with open(os.path.join(os.path.dirname(os.path.dirname(__file__)), "config.json"), "r", encoding="utf-8") as f:
         datas = json.loads(f.read())
-    _check_item = datas.get("GLADOS", [])[0]
-    print(Glados(check_item=_check_item).main())
+    _check_item = datas.get("EVERPHOTO", [])[0]
+    print(EverPhoto(check_item=_check_item).main())
